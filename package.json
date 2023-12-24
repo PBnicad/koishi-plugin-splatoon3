@@ -13,9 +13,21 @@
   "keywords": [
     "chatbot",
     "koishi",
-    "plugin"
+    "plugin",
+    "splatoon"
   ],
   "peerDependencies": {
     "koishi": "^4.16.2"
+  },
+  "dependencies": {
+    "puppeteer": "^21.6.1"
+  },
+  "koishi": {
+    "description": {
+      "en": "Query the information about splatoon3",
+      "zh": "查询斯普拉顿3日程、商店、祭典、打工等信息"
+    },
+    "locales": ["zh"],
+    "preview": true
   }
 }
