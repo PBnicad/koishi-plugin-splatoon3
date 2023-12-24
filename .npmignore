@@ -1,2 +1,4 @@
 .DS_Store
 tsconfig.tsbuildinfo
+src/screenshots/
+lib/screenshots/

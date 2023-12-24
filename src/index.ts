@@ -1,9 +1,10 @@
 import { Context, Schema } from 'koishi'
-import puppeteer from 'puppeteer'
+import {} from 'koishi-plugin-puppeteer'
 import path from 'path'
 import fs from 'fs'
 
 export const name = 'splatoon3'
+export const inject = ['puppeteer']
 
 export interface Config {}
 
@@ -12,18 +13,16 @@ export const Config: Schema<Config> = Schema.object({})
 export function apply(ctx: Context) {
   // 定义一个函数来处理截图逻辑
   async function captureScreenshot(url: string, filename: string, viewport: { width: number, height: number }) {
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
+    const page = await ctx.puppeteer.page();
     await page.setViewport(viewport);
     await page.goto(url, { waitUntil: 'networkidle0' });
-
+  
     const screenshotsDir = path.join(__dirname, 'screenshots');
     fs.mkdirSync(screenshotsDir, { recursive: true });
-
+  
     const screenshotPath = path.join(screenshotsDir, filename);
     await page.screenshot({ path: screenshotPath, fullPage: true });
-    await browser.close();
-
+  
     const imageBuffer = fs.readFileSync(screenshotPath);
     const imageBase64 = imageBuffer.toString('base64');
     const dataUri = 'data:image/png;base64,' + imageBase64;
