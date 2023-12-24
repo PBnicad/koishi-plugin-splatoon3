@@ -11,19 +11,44 @@ export interface Config {}
 export const Config: Schema<Config> = Schema.object({})
 
 export function apply(ctx: Context) {
-  // 定义一个函数来处理截图逻辑
   async function captureScreenshot(url: string, filename: string, viewport: { width: number, height: number }, clip?: { x: number, y: number, width: number, height: number }) {
     const page = await ctx.puppeteer.page();
     await page.setViewport(viewport);
+  
+    // 打开目标 URL
     await page.goto(url, { waitUntil: 'networkidle0' });
   
+    // 获取当前语言设置，并仅当需要时才更改语言
+    const currentLanguage = await page.evaluate(() => {
+      const languageSelector = document.querySelector('select.bg-transparent.text-zinc-300.cursor-pointer') as HTMLSelectElement;
+      return languageSelector ? languageSelector.value : null;
+    });
+  
+    // 如果当前语言不是简体中文，则更改语言
+    if (currentLanguage !== 'zh-CN') {
+      await page.evaluate(() => {
+        const languageSelector = document.querySelector('select.bg-transparent.text-zinc-300.cursor-pointer') as HTMLSelectElement;
+        if (languageSelector) {
+          languageSelector.value = 'zh-CN';
+          languageSelector.dispatchEvent(new Event('change'));
+        }
+      });
+  
+      // 等待语言更改后的网络响应
+      await page.waitForResponse(response =>
+        response.url().includes('locale/zh-CN.json') && response.status() === 200
+      );
+    }
+  
+    // 现在页面已经是简体中文，继续执行截图操作
+
     const screenshotsDir = path.join(__dirname, 'screenshots');
     fs.mkdirSync(screenshotsDir, { recursive: true });
-  
+
     const screenshotPath = path.join(screenshotsDir, filename);
     const screenshotOptions = clip ? { path: screenshotPath, clip } : { path: screenshotPath, fullPage: true };
     await page.screenshot(screenshotOptions);
-  
+
     const imageBuffer = fs.readFileSync(screenshotPath);
     const imageBase64 = imageBuffer.toString('base64');
     const dataUri = 'data:image/png;base64,' + imageBase64;
