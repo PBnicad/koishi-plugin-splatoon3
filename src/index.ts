@@ -14,15 +14,29 @@ export function apply(ctx: Context) {
   async function captureScreenshot(session: Session<never, never, Context>, url: string, filename: string, viewport: { width: number, height: number }, clip?: { x: number, y: number, width: number, height: number }) {
     const page = await ctx.puppeteer.page();
     await page.setViewport(viewport);
-  
+
+    // Set the language to Chinese
+    await page.setExtraHTTPHeaders({
+      'Accept-Language': 'zh-CN,zh;q=0.9'
+    });
+    await page.setExtraHTTPHeaders({
+      'Accept-Charset': 'utf-8',
+      'Content-Type': 'text/html; charset=utf-8'
+    });
+
     // 打开目标 URL
     await page.goto(url, { waitUntil: 'networkidle0' });
 
     // 在页面的头部插入一个 meta 标签来指定字符集为 UTF-8
     await page.evaluate(() => {
-      const metaCharset = document.createElement('meta');
-      metaCharset.setAttribute('charset', 'UTF-8');
-      document.head.appendChild(metaCharset);
+      const existingMetaCharset = document.querySelector('meta[charset]');
+      if (existingMetaCharset) {
+        existingMetaCharset.setAttribute('charset', 'UTF-8');
+      } else {
+        const metaCharset = document.createElement('meta');
+        metaCharset.setAttribute('charset', 'UTF-8');
+        document.head.prepend(metaCharset);
+      }
     });
   
     // 获取当前语言设置，并仅当需要时才更改语言
