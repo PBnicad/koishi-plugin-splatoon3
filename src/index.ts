@@ -19,6 +19,10 @@ export function apply(ctx: Context) {
     await page.setExtraHTTPHeaders({
       'Accept-Language': 'zh-CN,zh;q=0.9'
     });
+    
+    // 设置时区为东八区 (Asia/Shanghai)
+    await page.emulateTimezone('Asia/Shanghai');
+    
     await page.setExtraHTTPHeaders({
       'Accept-Charset': 'utf-8',
       'Content-Type': 'text/html; charset=utf-8'
